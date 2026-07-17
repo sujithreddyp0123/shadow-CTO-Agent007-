@@ -257,6 +257,29 @@ const reports = [
   "Reviewer Packet",
 ];
 
+const metricLabels: Record<string, string> = {
+  filesTouched: "Files touched",
+  sourceFilesTouched: "Source files",
+  testsAddedOrChanged: "Tests changed",
+  codeChurn: "Diff size",
+  riskScore: "Risk score",
+  complexityDelta: "Complexity delta",
+  maintenanceImpact: "Maintenance impact",
+};
+
+function formatEngineeringMetric(key: string, value: string | number) {
+  if (key === "codeChurn" && typeof value === "string") {
+    const summary = value.match(/(\d+ files? changed,\s*\d+ insertions?\(\+\),\s*\d+ deletions?\(-\))/);
+    return summary?.[1] ?? "Captured in git diff";
+  }
+
+  if (key === "riskScore") {
+    return `${value}/100`;
+  }
+
+  return String(value);
+}
+
 function App() {
   const [liveRun, setLiveRun] = useState<LiveRun | null>(null);
   const [engineeringOs, setEngineeringOs] = useState<EngineeringOs | null>(null);
@@ -756,8 +779,8 @@ function App() {
             <div className="metric-table">
               {Object.entries(engineeringOs.engineeringMetrics).map(([key, value]) => (
                 <div key={key}>
-                  <span>{key}</span>
-                  <strong>{value}</strong>
+                  <span>{metricLabels[key] ?? key}</span>
+                  <strong>{formatEngineeringMetric(key, value)}</strong>
                 </div>
               ))}
             </div>
