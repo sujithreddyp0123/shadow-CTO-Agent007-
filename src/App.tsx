@@ -373,6 +373,7 @@ function App() {
   const displayPacket = liveRun?.prPacket ?? prPacket;
   const displayRisks = liveRun?.risks ?? risks;
   const confidence = engineeringOs?.confidenceEngine;
+  const latestCheck = displayChecks[displayChecks.length - 1];
 
   async function refreshBackendRun(backendUrl: string, id: string) {
     const response = await fetch(`${backendUrl.replace(/\/$/, "")}/api/runs/${id}`, {
@@ -467,7 +468,11 @@ function App() {
               {new Date(liveRun.generatedAt).toLocaleString()}
             </div>
           ) : null}
-          <button type="button" className="primary-action">
+          <button
+            type="button"
+            className="primary-action"
+            onClick={() => document.getElementById("latest-result")?.scrollIntoView({ behavior: "smooth" })}
+          >
             <Play size={18} aria-hidden="true" />
             View verified workflow
           </button>
@@ -481,6 +486,41 @@ function App() {
             <strong>{item.value}</strong>
           </article>
         ))}
+      </section>
+
+      <section className="module latest-result" id="latest-result" aria-label="Latest run result">
+        <div className="module-title">
+          <ShieldCheck size={18} aria-hidden="true" />
+          <h2>Latest Run Result</h2>
+        </div>
+        <div className="result-grid">
+          <div className="result-main">
+            <span>{liveRun ? "Live backend evidence" : "Demo evidence"}</span>
+            <h3>{liveRun?.repo ?? request.repo}</h3>
+            <p>{liveRun?.goal ?? request.goal}</p>
+          </div>
+          <div className={`result-status ${liveRun?.summary.testsPassing === false ? "result-warning" : "result-success"}`}>
+            <strong>{liveRun?.summary.testsPassing === false ? "Needs review" : "Completed"}</strong>
+            <span>{liveRun?.implementation?.mode ?? "codex-cli"}</span>
+          </div>
+        </div>
+        <div className="result-facts">
+          <div>
+            <span>Changed files</span>
+            <strong>{displayFiles.length}</strong>
+          </div>
+          <div>
+            <span>Verification</span>
+            <strong>{"ok" in latestCheck ? (latestCheck.ok ? "Passed" : "Failed") : latestCheck.result}</strong>
+          </div>
+          <div>
+            <span>Run id</span>
+            <strong>{backendRun?.id ?? liveRun?.generatedAt ?? "demo"}</strong>
+          </div>
+        </div>
+        {"result" in latestCheck ? (
+          <pre className="result-output">{latestCheck.result}</pre>
+        ) : null}
       </section>
 
       <section className="module backend-runner" aria-label="Backend runner">

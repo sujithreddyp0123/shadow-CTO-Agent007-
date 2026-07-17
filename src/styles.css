@@ -313,6 +313,113 @@ p {
   color: #9b5d17;
 }
 
+.latest-result {
+  scroll-margin-top: 18px;
+  margin-bottom: 18px;
+  border-color: #adddc9;
+  background: #fbfdf9;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.25fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.result-main span,
+.result-facts span {
+  color: #68766e;
+  font-size: 0.78rem;
+  font-weight: 780;
+  text-transform: uppercase;
+}
+
+.result-main h3 {
+  margin: 8px 0 10px;
+  color: #17201d;
+  font-size: 1.35rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.result-main p {
+  margin-bottom: 0;
+  color: #3f4d48;
+  line-height: 1.55;
+}
+
+.result-status {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 112px;
+  padding: 16px;
+  border: 1px solid #adddc9;
+  border-radius: 8px;
+  background: #edf8f1;
+  text-align: center;
+}
+
+.result-status strong {
+  color: #12665f;
+  font-size: 1.25rem;
+}
+
+.result-status span {
+  color: #516159;
+  font-size: 0.86rem;
+  font-weight: 760;
+}
+
+.result-warning {
+  border-color: #efd3ad;
+  background: #fff9ed;
+}
+
+.result-warning strong {
+  color: #9b3d32;
+}
+
+.result-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.result-facts div {
+  min-height: 82px;
+  padding: 14px;
+  border: 1px solid #e2e9df;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.result-facts strong {
+  display: block;
+  margin-top: 10px;
+  color: #17201d;
+  font-size: 1rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.result-output {
+  overflow: auto;
+  max-height: 260px;
+  margin: 16px 0 0;
+  padding: 12px;
+  border: 1px solid #dfe8dc;
+  border-radius: 7px;
+  background: #f4f7f1;
+  color: #2d3b35;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
 .metric {
   min-height: 112px;
   padding: 20px;
@@ -1016,6 +1123,7 @@ p {
 
 @media (max-width: 1100px) {
   .hero,
+  .result-grid,
   .runner-form,
   .workbench,
   .packet-grid,
@@ -1057,6 +1165,10 @@ p {
   }
 
   .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .result-facts {
     grid-template-columns: 1fr;
   }
 
