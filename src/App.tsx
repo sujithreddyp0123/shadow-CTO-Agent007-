@@ -34,6 +34,8 @@ import {
 } from "./data/run";
 
 const dataUrl = (file: string) => `${import.meta.env.BASE_URL}${file}`;
+const bundledDemoRepoPath =
+  "C:/Users/sujit/Documents/Codex/2026-07-13/https-openai-com-build-week-2/demo-repos/acme-saas-demo";
 
 type LiveRun = {
   generatedAt: string;
@@ -298,12 +300,27 @@ function formatEngineeringMetric(key: string, value: string | number) {
   return String(value);
 }
 
+function extractRepoInput(value: string) {
+  const trimmed = value.trim();
+  const url = trimmed.match(/https?:\/\/[^\s"'<>]+/);
+  if (url) {
+    return url[0];
+  }
+
+  const windowsPath = trimmed.match(/[A-Za-z]:[\\/][^\r\n"'<>]+/);
+  if (windowsPath) {
+    return windowsPath[0].trim();
+  }
+
+  return trimmed;
+}
+
 function App() {
   const [liveRun, setLiveRun] = useState<LiveRun | null>(null);
   const [engineeringOs, setEngineeringOs] = useState<EngineeringOs | null>(null);
   const [runnerForm, setRunnerForm] = useState({
     backendUrl: "http://127.0.0.1:8787",
-    repo: "",
+    repo: bundledDemoRepoPath,
     task: "Review this repo, implement the requested change, run tests, and return a PR-ready evidence packet.",
     testCommand: "",
     requireAgent: true,
@@ -381,10 +398,9 @@ function App() {
     setRunnerError("");
     setBackendRun(null);
 
-    const repoValue = runnerForm.repo.trim();
-    if (!repoValue) {
-      setRunnerError("Paste a local repo path or GitHub repo URL first.");
-      return;
+    const repoValue = extractRepoInput(runnerForm.repo) || bundledDemoRepoPath;
+    if (repoValue !== runnerForm.repo) {
+      setRunnerForm({ ...runnerForm, repo: repoValue });
     }
 
     const body = {
@@ -477,7 +493,10 @@ function App() {
             Backend API
             <input
               value={runnerForm.backendUrl}
-              onChange={(event) => setRunnerForm({ ...runnerForm, backendUrl: event.target.value })}
+              onChange={(event) => {
+                setRunnerError("");
+                setRunnerForm({ ...runnerForm, backendUrl: event.target.value });
+              }}
               placeholder="http://127.0.0.1:8787"
             />
           </label>
@@ -485,7 +504,10 @@ function App() {
             Repo path or GitHub URL
             <input
               value={runnerForm.repo}
-              onChange={(event) => setRunnerForm({ ...runnerForm, repo: event.target.value })}
+              onChange={(event) => {
+                setRunnerError("");
+                setRunnerForm({ ...runnerForm, repo: event.target.value });
+              }}
               placeholder="C:/Users/sujit/Documents/Agri-AI or https://github.com/..."
             />
           </label>
@@ -493,7 +515,10 @@ function App() {
             Business request
             <textarea
               value={runnerForm.task}
-              onChange={(event) => setRunnerForm({ ...runnerForm, task: event.target.value })}
+              onChange={(event) => {
+                setRunnerError("");
+                setRunnerForm({ ...runnerForm, task: event.target.value });
+              }}
               rows={3}
             />
           </label>
@@ -501,7 +526,10 @@ function App() {
             Test command
             <input
               value={runnerForm.testCommand}
-              onChange={(event) => setRunnerForm({ ...runnerForm, testCommand: event.target.value })}
+              onChange={(event) => {
+                setRunnerError("");
+                setRunnerForm({ ...runnerForm, testCommand: event.target.value });
+              }}
               placeholder="npm test, python -m pytest, or leave blank"
             />
           </label>
@@ -509,18 +537,33 @@ function App() {
             <input
               type="checkbox"
               checked={runnerForm.requireAgent}
-              onChange={(event) => setRunnerForm({ ...runnerForm, requireAgent: event.target.checked })}
+              onChange={(event) => {
+                setRunnerError("");
+                setRunnerForm({ ...runnerForm, requireAgent: event.target.checked });
+              }}
             />
             Require Codex implementation agent
           </label>
-          <button
-            type="submit"
-            className="primary-action runner-submit"
-            disabled={backendRun?.status === "queued" || backendRun?.status === "running"}
-          >
-            <Play size={18} aria-hidden="true" />
-            Start backend run
-          </button>
+          <div className="runner-actions">
+            <button
+              type="button"
+              className="secondary-action runner-demo"
+              onClick={() => {
+                setRunnerError("");
+                setRunnerForm({ ...runnerForm, repo: bundledDemoRepoPath, testCommand: "node --test" });
+              }}
+            >
+              Use demo repo
+            </button>
+            <button
+              type="submit"
+              className="primary-action runner-submit"
+              disabled={backendRun?.status === "queued" || backendRun?.status === "running"}
+            >
+              <Play size={18} aria-hidden="true" />
+              Start backend run
+            </button>
+          </div>
         </form>
         <div className="runner-status">
           {backendRun ? (

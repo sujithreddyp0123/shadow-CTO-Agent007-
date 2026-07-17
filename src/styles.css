@@ -258,6 +258,16 @@ p {
   margin-top: 0;
 }
 
+.runner-actions {
+  display: grid;
+  gap: 9px;
+}
+
+.runner-demo {
+  min-height: 40px;
+  background: #10231f;
+}
+
 .runner-submit:disabled {
   cursor: wait;
   opacity: 0.72;
