@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "backend": "node backend/server.mjs",
     "build": "tsc -b && vite build",
     "preflight:agent": "node scripts/preflight-agent.mjs",
     "run:evidence": "node scripts/run-shadow-cto.mjs",

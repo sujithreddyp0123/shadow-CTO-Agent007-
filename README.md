@@ -86,6 +86,37 @@ npm run run:evidence
 npm run dev -- --port 5173
 ```
 
+## Backend MVP
+
+The hosted site is a static demo, but the repo now includes a local backend runner for real MVP testing.
+
+Start the API:
+
+```bash
+npm run backend
+```
+
+Health check:
+
+```bash
+curl http://127.0.0.1:8787/health
+```
+
+Run Shadow CTO against a repo:
+
+```bash
+curl -X POST http://127.0.0.1:8787/api/runs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "repoPath": "C:/path/to/agri-ai",
+    "task": "Review this repo, run tests, and make the requested change.",
+    "testCommand": "npm test",
+    "requireAgent": true
+  }'
+```
+
+The backend copies or clones the target repo into `work/backend-runs/`, writes `SHADOW_CTO_TASK.md`, runs baseline tests, calls Codex CLI when available, runs final tests, captures `git diff`, and returns an evidence packet from `GET /api/runs/:id`.
+
 ## Production build
 
 ```bash
