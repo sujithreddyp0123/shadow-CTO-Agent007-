@@ -1,0 +1,220 @@
+{
+  "repositoryIntelligence": {
+    "architecture": "Derived from 3 changed files: src/invites.js owns the runtime behavior and test/invites.test.js verifies it.",
+    "entryPoints": [
+      "src/invites.js#SeatLimitReachedError|getSeatUsage|hasSeatAvailable",
+      "test/invites.test.js"
+    ],
+    "impactedModules": [
+      "src/invites.js"
+    ],
+    "dependencyGraph": [
+      "test/invites.test.js -> ../src/invites.js",
+      "test/invites.test.js -> src/invites.js"
+    ],
+    "apiRelationships": [
+      "SeatLimitReachedError(...)",
+      "getSeatUsage(...)",
+      "hasSeatAvailable(...)"
+    ],
+    "dataRelationships": [
+      "teams.seatLimit controls capacity",
+      "members contribute to usage",
+      "pending invites contribute to usage",
+      "null/undefined limits preserve legacy behavior"
+    ],
+    "callGraph": [
+      "inviteMember -> findTeam",
+      "inviteMember -> getSeatUsage",
+      "inviteMember -> hasSeatAvailable",
+      "hasSeatAvailable -> getSeatUsage"
+    ],
+    "riskHotspots": [
+      "Billing source of truth",
+      "Pending invite lifecycle",
+      "Pending invite lifecycle affects seat accounting",
+      "Billing-sensitive invariant should be transaction-safe in production"
+    ]
+  },
+  "impactAnalysis": [
+    {
+      "file": "SHADOW_CTO_TASK.md",
+      "reason": "Audit/planning artifact changed; 0 added lines and 0 removed lines detected.",
+      "dependencies": [],
+      "breakingChangeRisk": "Low",
+      "complexity": "0 additions / 0 deletions",
+      "publicApiAffected": "No",
+      "regressionProbability": "Low after 5 passing tests"
+    },
+    {
+      "file": "src/invites.js",
+      "reason": "Runtime behavior changed here; 30 added lines and 1 removed lines detected.",
+      "dependencies": [
+        "./store.js"
+      ],
+      "breakingChangeRisk": "Medium",
+      "complexity": "30 additions / 1 deletions",
+      "publicApiAffected": "Yes",
+      "regressionProbability": "Low after 5 passing tests"
+    },
+    {
+      "file": "test/invites.test.js",
+      "reason": "Verification changed here; 49 added lines and 2 removed lines detected.",
+      "dependencies": [
+        "node:assert/strict",
+        "node:test",
+        "../src/invites.js",
+        "../src/store.js"
+      ],
+      "breakingChangeRisk": "Low",
+      "complexity": "49 additions / 2 deletions",
+      "publicApiAffected": "No",
+      "regressionProbability": "Low after 5 passing tests"
+    }
+  ],
+  "autonomousPlan": {
+    "epic": "Deliver: Add team billing seats so admins can set a seat limit and block invites when the team is over limit.",
+    "stories": [
+      "As an admin, I need seat limits enforced during invites.",
+      "As a legacy customer, I need unlimited teams preserved.",
+      "As a reviewer, I need regression tests proving the behavior."
+    ],
+    "tasks": [
+      "Read task contract",
+      "Modify src/invites.js",
+      "Update test/invites.test.js",
+      "Run final verification",
+      "Generate evidence packet"
+    ],
+    "executionOrder": [
+      "Requirements",
+      "Repository analysis",
+      "Implementation",
+      "Verification",
+      "Review",
+      "Release packet"
+    ],
+    "validationPlan": [
+      "Passed: C:\\Program Files\\nodejs\\node.exe --test",
+      "Passed: C:\\Program Files\\nodejs\\node.exe --test"
+    ],
+    "rollbackPlan": [
+      "Revert src/invites.js and rerun C:\\Program Files\\nodejs\\node.exe --test"
+    ]
+  },
+  "decisionLog": [
+    {
+      "decision": "Implement in the invite domain path.",
+      "why": "The changed diff shows the business invariant being enforced where invite creation happens.",
+      "evidence": "src/invites.js"
+    },
+    {
+      "decision": "Expose SeatLimitReachedError, getSeatUsage, hasSeatAvailable.",
+      "why": "The exported surface is derived from the live source diff, so review and tests can target concrete behavior.",
+      "evidence": "Export declarations in diff"
+    },
+    {
+      "decision": "Accept release candidate after tests.",
+      "why": "The readiness state follows the final captured check result.",
+      "evidence": "# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 239.9056"
+    }
+  ],
+  "selfReview": [
+    {
+      "severity": "Medium",
+      "comment": "Pending invites now count toward seat usage, so stale pending invites can block admins.",
+      "recommendation": "Expose cancellation or expiration before broad production rollout.",
+      "evidence": "Diff references pending invites in seat usage logic."
+    },
+    {
+      "severity": "Medium",
+      "comment": "Seat-limit checks are billing-sensitive and can race if backed by concurrent persistent writes.",
+      "recommendation": "Use a database transaction, lock, or constraint when moving from this in-memory demo to production.",
+      "evidence": "Changed invite flow enforces capacity before creating an invite."
+    }
+  ],
+  "failureRecovery": [
+    "Detect: implementation.ok is true and final tests are passing.",
+    "Explain: command output and diff are retained in live-run.json.",
+    "Repair: rerun the agent with SHADOW_CTO_TASK.md plus failing check output.",
+    "Validate: strict demo exits non-zero unless implementation changed code and tests pass."
+  ],
+  "confidenceEngine": {
+    "architecture": 88,
+    "implementation": 91,
+    "testing": 97,
+    "security": 82,
+    "deployment": 88,
+    "overall": 89
+  },
+  "repositoryMemory": [
+    {
+      "run": "Current",
+      "changedFiles": [
+        "SHADOW_CTO_TASK.md",
+        "src/invites.js",
+        "test/invites.test.js"
+      ],
+      "knownRisks": [
+        "Billing source of truth",
+        "Pending invite lifecycle"
+      ]
+    },
+    {
+      "run": "Next recommended",
+      "changedFiles": [
+        "src/invites.js"
+      ],
+      "knownRisks": [
+        "Billing source of truth",
+        "Pending invite lifecycle",
+        "Pending invite lifecycle affects seat accounting",
+        "Billing-sensitive invariant should be transaction-safe in production"
+      ]
+    }
+  ],
+  "engineeringMetrics": {
+    "filesTouched": 3,
+    "sourceFilesTouched": 1,
+    "testsAddedOrChanged": 1,
+    "codeChurn": "SHADOW_CTO_TASK.md   | 23 +++++++++++++++++++++++\n src/invites.js       | 31 ++++++++++++++++++++++++++++++-\n test/invites.test.js | 51 +++++++++++++++++++++++++++++++++++++++++++++++++--\n 3 files changed, 102 insertions(+), 3 deletions(-)",
+    "riskScore": 12,
+    "complexityDelta": "3 exported symbols, 2 dependency edges",
+    "maintenanceImpact": "Low to medium; localized but billing-sensitive."
+  },
+  "whatIf": [
+    {
+      "option": "Domain-level enforcement",
+      "tradeoff": "Chosen path: smallest changed surface and easiest to verify in the invite flow.",
+      "evidence": "src/invites.js changed in the live diff."
+    },
+    {
+      "option": "Persistence-level constraint",
+      "tradeoff": "Stronger production guarantee, but requires schema and transaction design outside this demo repo.",
+      "evidence": "Billing capacity is a data integrity concern."
+    },
+    {
+      "option": "Reusable helper surface",
+      "tradeoff": "Selected where present: lets tests and future admin UI copy inspect availability without duplicating logic.",
+      "evidence": "Helper export detected in the diff."
+    }
+  ],
+  "trustLinks": [
+    {
+      "claim": "Implementation status",
+      "evidence": "mode=codex-cli; ok=true"
+    },
+    {
+      "claim": "Behavior was verified",
+      "evidence": "# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 239.9056"
+    },
+    {
+      "claim": "Review findings are diff-derived",
+      "evidence": "Diff references pending invites in seat usage logic. | Changed invite flow enforces capacity before creating an invite."
+    },
+    {
+      "claim": "Scores are signal-derived",
+      "evidence": "Confidence uses test pass count, changed files, review severity, typed errors, helper exports, and risks."
+    }
+  ]
+}
