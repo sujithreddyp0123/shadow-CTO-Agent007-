@@ -1,12 +1,18 @@
 # Shadow CTO
 
-Shadow CTO is a trust layer for AI-generated software. It turns one business request into a verified, PR-ready engineering change with evidence a human reviewer can inspect.
+Shadow CTO is the undercover engineering agent for startups.
+
+Think of it like a James Bond for your codebase: it stays in the background, watches the repo, understands the mission, sends in Codex to make the change, checks the evidence, and comes back with a PR-ready report.
+
+AI can write code fast. Shadow CTO helps startups know whether that code is actually safe to ship.
+
+It turns one business request into a verified engineering change with the proof a human reviewer needs: plan, diff, tests, risk report, confidence score, and PR packet.
 
 The current MVP focuses on a single realistic SaaS request:
 
 > Add team billing seats so admins can set a seat limit and block invites when the team is over limit.
 
-Instead of showing code generation alone, Shadow CTO shows the accountable engineering trail around the change:
+Instead of showing code generation alone, Shadow CTO shows the full engineering trail around the change:
 
 - repo brief
 - approved implementation plan
@@ -15,10 +21,15 @@ Instead of showing code generation alone, Shadow CTO shows the accountable engin
 - verification commands and outcomes
 - risk report
 - reviewer-ready PR packet
+- confidence score
 
 ## Why it matters
 
-Small teams rarely need an AI that only writes code. They need a system that can connect product intent to a trustworthy engineering outcome. Shadow CTO is designed around that trust gap: what changed, why it changed, how it was verified, and what risk remains.
+Startups do not just need more code. They need someone watching the operation.
+
+Small teams are already using AI coding tools, but they still need the missing CTO layer: did the agent understand the request, touch the right files, pass the tests, introduce risk, and produce something a human can review?
+
+Shadow CTO is built around that trust gap. It connects product intent to a trustworthy engineering outcome: what changed, why it changed, how it was verified, and what risk remains.
 
 ## Current vertical slice
 
