@@ -91,6 +91,24 @@ p {
   line-height: 1.65;
 }
 
+.hero-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.hero-proof span {
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid rgba(158, 232, 214, 0.32);
+  border-radius: 999px;
+  background: rgba(158, 232, 214, 0.1);
+  color: #c8f5e8;
+  font-size: 0.86rem;
+  font-weight: 760;
+}
+
 .request-panel,
 .module,
 .metric {

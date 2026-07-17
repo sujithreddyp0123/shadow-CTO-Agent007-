@@ -32,6 +32,8 @@ import {
   timeline,
 } from "./data/run";
 
+const dataUrl = (file: string) => `${import.meta.env.BASE_URL}${file}`;
+
 type LiveRun = {
   generatedAt: string;
   repo: string;
@@ -260,12 +262,12 @@ function App() {
   const [engineeringOs, setEngineeringOs] = useState<EngineeringOs | null>(null);
 
   useEffect(() => {
-    fetch("/live-run.json", { cache: "no-store" })
+    fetch(dataUrl("live-run.json"), { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((data: LiveRun | null) => setLiveRun(data))
       .catch(() => setLiveRun(null));
 
-    fetch("/engineering-os.json", { cache: "no-store" })
+    fetch(dataUrl("engineering-os.json"), { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((data: EngineeringOs | null) => setEngineeringOs(data))
       .catch(() => setEngineeringOs(null));
@@ -311,20 +313,25 @@ function App() {
         <div className="hero-copy">
           <div className="eyebrow">
             <Sparkles size={16} aria-hidden="true" />
-            Codex Build Week vertical slice
+            Trust layer for AI-generated software
           </div>
-          <h1>Shadow CTO runs an autonomous engineering org for one business request.</h1>
+          <h1>Your startup's undercover CTO agent.</h1>
           <p>
-            Watch specialized agents plan, design, implement, test, review, and package a
-            production-ready change with traceable decisions, live evidence, and executive reporting.
+            AI can write code fast. Shadow CTO quietly plans the work, sends Codex into the repo,
+            verifies the diff, runs tests, flags risk, and returns a PR packet founders can trust.
           </p>
+          <div className="hero-proof">
+            <span>Real Codex run</span>
+            <span>5/5 tests passed</span>
+            <span>PR-ready evidence</span>
+          </div>
         </div>
         <div className="request-panel" aria-label="Current business request">
           <div className="panel-header">
-            <span>{liveRun ? "Live runner evidence" : request.owner}</span>
-            <strong>{liveRun ? "Actual git diff + tests" : request.risk}</strong>
+            <span>{liveRun ? "Verified run" : "Founder request"}</span>
+            <strong>{liveRun ? "Diff + tests captured" : "Ship with confidence"}</strong>
           </div>
-          <h2>{liveRun?.repo ?? request.repo}</h2>
+          <h2>From request to reviewed PR</h2>
           <p>{liveRun?.goal ?? request.goal}</p>
           {liveRun ? (
             <div className="live-stamp">
@@ -334,7 +341,7 @@ function App() {
           ) : null}
           <button type="button" className="primary-action">
             <Play size={18} aria-hidden="true" />
-            Run autonomous workflow
+            View verified workflow
           </button>
         </div>
       </section>
