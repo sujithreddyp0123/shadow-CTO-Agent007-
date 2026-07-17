@@ -1,8 +1,8 @@
 # Shadow CTO
 
-Shadow CTO is a Codex Build Week vertical slice: turn one business request into a verified PR-ready change.
+Shadow CTO is a trust layer for AI-generated software. It turns one business request into a verified, PR-ready engineering change with evidence a human reviewer can inspect.
 
-The demo focuses on a single realistic SaaS request:
+The current MVP focuses on a single realistic SaaS request:
 
 > Add team billing seats so admins can set a seat limit and block invites when the team is over limit.
 
@@ -38,7 +38,7 @@ The runner:
 
 Shadow CTO records the implementation source in `public/live-run.json`.
 
-Before recording the actual Build Week demo, run:
+Before recording or sharing the demo, run:
 
 ```bash
 npm run preflight:agent
