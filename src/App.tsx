@@ -19,6 +19,7 @@ import {
   TrendingUp,
   UsersRound,
 } from "lucide-react";
+import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   changedFiles,
@@ -69,6 +70,23 @@ type LiveRun = {
     title: string;
     body: string;
   }>;
+};
+
+type BackendRun = {
+  id: string;
+  status: "queued" | "running" | "completed" | "needs-review" | "failed";
+  createdAt: string;
+  updatedAt: string;
+  input: {
+    repoPath?: string;
+    repoUrl?: string;
+    task: string;
+    title?: string;
+    testCommand?: string;
+    requireAgent?: boolean;
+  };
+  error?: string;
+  evidence?: LiveRun;
 };
 
 type EngineeringOs = {
@@ -283,6 +301,15 @@ function formatEngineeringMetric(key: string, value: string | number) {
 function App() {
   const [liveRun, setLiveRun] = useState<LiveRun | null>(null);
   const [engineeringOs, setEngineeringOs] = useState<EngineeringOs | null>(null);
+  const [runnerForm, setRunnerForm] = useState({
+    backendUrl: "http://127.0.0.1:8787",
+    repo: "",
+    task: "Review this repo, implement the requested change, run tests, and return a PR-ready evidence packet.",
+    testCommand: "",
+    requireAgent: true,
+  });
+  const [backendRun, setBackendRun] = useState<BackendRun | null>(null);
+  const [runnerError, setRunnerError] = useState("");
 
   useEffect(() => {
     fetch(dataUrl("live-run.json"), { cache: "no-store" })
@@ -330,6 +357,68 @@ function App() {
   const displayRisks = liveRun?.risks ?? risks;
   const confidence = engineeringOs?.confidenceEngine;
 
+  async function refreshBackendRun(backendUrl: string, id: string) {
+    const response = await fetch(`${backendUrl.replace(/\/$/, "")}/api/runs/${id}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      throw new Error(`Backend returned ${response.status}`);
+    }
+    const nextRun = (await response.json()) as BackendRun;
+    setBackendRun(nextRun);
+    if (nextRun.evidence) {
+      setLiveRun(nextRun.evidence);
+    }
+    if (nextRun.status === "queued" || nextRun.status === "running") {
+      window.setTimeout(() => {
+        refreshBackendRun(backendUrl, id).catch((error) => setRunnerError(error.message));
+      }, 2500);
+    }
+  }
+
+  async function startBackendRun(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setRunnerError("");
+    setBackendRun(null);
+
+    const repoValue = runnerForm.repo.trim();
+    if (!repoValue) {
+      setRunnerError("Paste a local repo path or GitHub repo URL first.");
+      return;
+    }
+
+    const body = {
+      task: runnerForm.task.trim(),
+      testCommand: runnerForm.testCommand.trim() || undefined,
+      requireAgent: runnerForm.requireAgent,
+      ...(repoValue.startsWith("http") ? { repoUrl: repoValue } : { repoPath: repoValue }),
+    };
+
+    try {
+      const backendUrl = runnerForm.backendUrl.replace(/\/$/, "");
+      const response = await fetch(`${backendUrl}/api/runs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const started = (await response.json()) as BackendRun | { error: string };
+      if (!response.ok || "error" in started) {
+        throw new Error("error" in started ? started.error : `Backend returned ${response.status}`);
+      }
+      setBackendRun(started);
+      window.setTimeout(() => {
+        refreshBackendRun(backendUrl, started.id).catch((error) => setRunnerError(error.message));
+      }, 1000);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to reach backend";
+      setRunnerError(
+        message.includes("Failed to fetch")
+          ? "Could not reach the backend. Start it with `npm run backend`, then open the local dashboard with `npm run dev`."
+          : message,
+      );
+    }
+  }
+
   return (
     <main className="app-shell">
       <section className="hero">
@@ -376,6 +465,84 @@ function App() {
             <strong>{item.value}</strong>
           </article>
         ))}
+      </section>
+
+      <section className="module backend-runner" aria-label="Backend runner">
+        <div className="module-title">
+          <Cpu size={18} aria-hidden="true" />
+          <h2>Run Real Repo</h2>
+        </div>
+        <form className="runner-form" onSubmit={startBackendRun}>
+          <label>
+            Backend API
+            <input
+              value={runnerForm.backendUrl}
+              onChange={(event) => setRunnerForm({ ...runnerForm, backendUrl: event.target.value })}
+              placeholder="http://127.0.0.1:8787"
+            />
+          </label>
+          <label>
+            Repo path or GitHub URL
+            <input
+              value={runnerForm.repo}
+              onChange={(event) => setRunnerForm({ ...runnerForm, repo: event.target.value })}
+              placeholder="C:/Users/sujit/Documents/Agri-AI or https://github.com/..."
+            />
+          </label>
+          <label className="runner-task">
+            Business request
+            <textarea
+              value={runnerForm.task}
+              onChange={(event) => setRunnerForm({ ...runnerForm, task: event.target.value })}
+              rows={3}
+            />
+          </label>
+          <label>
+            Test command
+            <input
+              value={runnerForm.testCommand}
+              onChange={(event) => setRunnerForm({ ...runnerForm, testCommand: event.target.value })}
+              placeholder="npm test, python -m pytest, or leave blank"
+            />
+          </label>
+          <label className="runner-toggle">
+            <input
+              type="checkbox"
+              checked={runnerForm.requireAgent}
+              onChange={(event) => setRunnerForm({ ...runnerForm, requireAgent: event.target.checked })}
+            />
+            Require Codex implementation agent
+          </label>
+          <button
+            type="submit"
+            className="primary-action runner-submit"
+            disabled={backendRun?.status === "queued" || backendRun?.status === "running"}
+          >
+            <Play size={18} aria-hidden="true" />
+            Start backend run
+          </button>
+        </form>
+        <div className="runner-status">
+          {backendRun ? (
+            <>
+              <div className={`runner-pill runner-${backendRun.status}`}>
+                {backendRun.status}
+              </div>
+              <span>Run id: {backendRun.id}</span>
+              {backendRun.evidence ? (
+                <span>
+                  Evidence loaded: {backendRun.evidence.summary.filesChanged} files changed; tests{" "}
+                  {backendRun.evidence.summary.testsPassing ? "passing" : "need review"}.
+                </span>
+              ) : null}
+            </>
+          ) : (
+            <span>
+              Start `npm run backend`, paste an Agri AI repo path or GitHub URL, then this panel will execute the real runner API.
+            </span>
+          )}
+          {runnerError ? <strong>{runnerError}</strong> : null}
+        </div>
       </section>
 
       <section className="executive-grid" aria-label="Executive dashboard">

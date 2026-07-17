@@ -352,6 +352,25 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, { ok: true, service: "shadow-cto-backend" });
   }
 
+  if (req.method === "GET" && url.pathname === "/") {
+    return json(res, 200, {
+      ok: true,
+      service: "shadow-cto-backend",
+      message: "Shadow CTO backend is running. Use POST /api/runs to start a repo run.",
+      endpoints: {
+        health: "GET /health",
+        startRun: "POST /api/runs",
+        getRun: "GET /api/runs/:id",
+      },
+      example: {
+        repoPath: "C:\\path\\to\\your\\repo",
+        task: "Add the requested feature and verify it with tests.",
+        testCommand: "npm test",
+        requireAgent: true,
+      },
+    });
+  }
+
   if (req.method === "POST" && url.pathname === "/api/runs") {
     try {
       const body = await readBody(req);

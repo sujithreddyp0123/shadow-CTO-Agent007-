@@ -192,6 +192,117 @@ p {
   margin: 22px 0;
 }
 
+.backend-runner {
+  margin-bottom: 18px;
+  border-color: #cbded6;
+}
+
+.runner-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(280px, 1.1fr) minmax(190px, 0.7fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.runner-form label {
+  display: grid;
+  gap: 7px;
+  color: #56635c;
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
+.runner-form input,
+.runner-form textarea {
+  width: 100%;
+  border: 1px solid #d9e3d5;
+  border-radius: 7px;
+  background: #fbfcf8;
+  color: #17201d;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.runner-form input {
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.runner-form textarea {
+  min-height: 86px;
+  padding: 11px 12px;
+  resize: vertical;
+}
+
+.runner-task {
+  grid-column: span 2;
+}
+
+.runner-toggle {
+  min-height: 48px;
+  grid-template-columns: 18px 1fr;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e2e9df;
+  border-radius: 7px;
+  background: #fbfcf8;
+}
+
+.runner-toggle input {
+  min-height: auto;
+  accent-color: #12665f;
+}
+
+.runner-submit {
+  margin-top: 0;
+}
+
+.runner-submit:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.runner-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e9df;
+  color: #4b5a53;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.runner-status strong {
+  color: #9b3d32;
+}
+
+.runner-pill {
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #e9f3ed;
+  color: #12665f;
+  font-size: 0.78rem;
+  font-weight: 820;
+  text-transform: uppercase;
+}
+
+.runner-failed,
+.runner-needs-review {
+  background: #fff0e6;
+  color: #9b3d32;
+}
+
+.runner-running,
+.runner-queued {
+  background: #fff9ed;
+  color: #9b5d17;
+}
+
 .metric {
   min-height: 112px;
   padding: 20px;
@@ -895,6 +1006,7 @@ p {
 
 @media (max-width: 1100px) {
   .hero,
+  .runner-form,
   .workbench,
   .packet-grid,
   .executive-grid,
@@ -949,6 +1061,10 @@ p {
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .runner-task {
+    grid-column: auto;
   }
 
   .primary-action,
