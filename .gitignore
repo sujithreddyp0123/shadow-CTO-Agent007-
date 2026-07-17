@@ -1,0 +1,15 @@
+node_modules/
+dist/
+work/
+outputs/
+.npm-cache/
+.agents/
+.codex/
+
+.env
+.env.*
+
+*.tsbuildinfo
+*.log
+
+reports/

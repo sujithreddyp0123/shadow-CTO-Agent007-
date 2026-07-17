@@ -1,0 +1,61 @@
+{
+  "generatedAt": "2026-07-14T21:35:19.635Z",
+  "repo": "work/shadow-demo-repo",
+  "goal": "Add team billing seats so admins can set a seat limit and block invites when the team is over limit.",
+  "live": true,
+  "implementation": {
+    "mode": "codex-cli",
+    "command": "C:\\Users\\sujit\\Documents\\Codex\\2026-07-13\\https-openai-com-build-week-2\\node_modules\\.bin\\codex.cmd --ask-for-approval never exec --sandbox workspace-write --cd C:\\Users\\sujit\\Documents\\Codex\\2026-07-13\\https-openai-com-build-week-2\\work\\shadow-demo-repo --skip-git-repo-check Implement the task in SHADOW_CTO_TASK.md. Modify the repo files as needed, run node --test, and stop without committing.",
+    "ok": true,
+    "output": "Implemented the seat-limit invite behavior without committing.\n\nChanged:\n- [src/invites.js](C:/Users/sujit/Documents/Codex/2026-07-13/https-openai-com-build-week-2/work/shadow-demo-repo/src/invites.js): added seat usage accounting, availability helper, and `SeatLimitReachedError`.\n- [test/invites.test.js](C:/Users/sujit/Documents/Codex/2026-07-13/https-openai-com-build-week-2/work/shadow-demo-repo/test/invites.test.js): added coverage for under-limit, at-limit blocking, null/undefined unlimited plans, and availability changes.\n\nVerification:\n- `node --test` passes: 5 tests, 5 passed.\n\nRepo status shows modified `src/invites.js` and `test/invites.test.js`; `SHADOW_CTO_TASK.md` remains untracked as it was at the start.",
+    "durationMs": 76393
+  },
+  "summary": {
+    "filesChanged": 3,
+    "testsPassing": true,
+    "riskItems": 2,
+    "baselineTests": "passing before change"
+  },
+  "changedFiles": [
+    "SHADOW_CTO_TASK.md",
+    "src/invites.js",
+    "test/invites.test.js"
+  ],
+  "checks": [
+    {
+      "command": "C:\\Program Files\\nodejs\\node.exe --test",
+      "ok": true,
+      "result": "# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 104.8885",
+      "durationMs": 157
+    },
+    {
+      "command": "C:\\Program Files\\nodejs\\node.exe --test",
+      "ok": true,
+      "result": "# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 239.9056",
+      "durationMs": 364
+    }
+  ],
+  "diffStat": "SHADOW_CTO_TASK.md   | 23 +++++++++++++++++++++++\n src/invites.js       | 31 ++++++++++++++++++++++++++++++-\n test/invites.test.js | 51 +++++++++++++++++++++++++++++++++++++++++++++++++--\n 3 files changed, 102 insertions(+), 3 deletions(-)",
+  "diff": "diff --git a/src/invites.js b/src/invites.js\nindex 279f9ee..c42ed90 100644\n--- a/src/invites.js\n+++ b/src/invites.js\n@@ -1,7 +1,36 @@\n import { findTeam } from \"./store.js\";\n \n+export class SeatLimitReachedError extends Error {\n+  constructor(team, usage) {\n+    super(`Team ${team.id} has reached its seat limit of ${team.seatLimit}. Add seats before inviting more members.`);\n+    this.name = \"SeatLimitReachedError\";\n+    this.code = \"SEAT_LIMIT_REACHED\";\n+    this.teamId = team.id;\n+    this.seatLimit = team.seatLimit;\n+    this.seatUsage = usage;\n+  }\n+}\n+\n+export function getSeatUsage(store, teamId) {\n+  const activeMembers = store.members.filter((member) => member.teamId === teamId).length;\n+  const pendingInvites = store.invites.filter((invite) => invite.teamId === teamId && invite.status === \"pending\").length;\n+\n+  return activeMembers + pendingInvites;\n+}\n+\n+export function hasSeatAvailable(store, teamId) {\n+  const team = findTeam(store, teamId);\n+\n+  return team.seatLimit == null || getSeatUsage(store, teamId) < team.seatLimit;\n+}\n+\n export function inviteMember(store, teamId, email) {\n-  findTeam(store, teamId);\n+  const team = findTeam(store, teamId);\n+  const usage = getSeatUsage(store, teamId);\n+\n+  if (team.seatLimit != null && usage >= team.seatLimit) {\n+    throw new SeatLimitReachedError(team, usage);\n+  }\n \n   const invite = {\n     id: `inv_${store.invites.length + 1}`,\ndiff --git a/test/invites.test.js b/test/invites.test.js\nindex d4dd8e3..7a17ba2 100644\n--- a/test/invites.test.js\n+++ b/test/invites.test.js\n@@ -1,15 +1,37 @@\n import assert from \"node:assert/strict\";\n import test from \"node:test\";\n-import { inviteMember } from \"../src/invites.js\";\n+import { getSeatUsage, hasSeatAvailable, inviteMember, SeatLimitReachedError } from \"../src/invites.js\";\n import { createDemoStore } from \"../src/store.js\";\n \n test(\"creates an invite while the team is under its seat limit\", () => {\n   const store = createDemoStore();\n+  store.invites = [];\n \n   const invite = inviteMember(store, \"team_starter\", \"new@example.com\");\n \n   assert.equal(invite.email, \"new@example.com\");\n-  assert.equal(store.invites.length, 2);\n+  assert.equal(store.invites.length, 1);\n+  assert.equal(getSeatUsage(store, \"team_starter\"), 3);\n+});\n+\n+test(\"blocks invites when active members plus pending invites reach the seat limit\", () => {\n+  const store = createDemoStore();\n+\n+  assert.throws(\n+    () => inviteMember(store, \"team_starter\", \"blocked@example.com\"),\n+    (error) => {\n+      assert.ok(error instanceof SeatLimitReachedError);\n+      assert.equal(error.name, \"SeatLimitReachedError\");\n+      assert.equal(error.code, \"SEAT_LIMIT_REACHED\");\n+      assert.equal(error.teamId, \"team_starter\");\n+      assert.equal(error.seatLimit, 3);\n+      assert.equal(error.seatUsage, 3);\n+      assert.match(error.message, /Add seats before inviting more members/);\n+      return true;\n+    },\n+  );\n+\n+  assert.equal(store.invites.length, 1);\n });\n \n test(\"legacy teams without a seat limit can continue inviting members\", () => {\n@@ -19,3 +41,28 @@ test(\"legacy teams without a seat limit can continue inviting members\", () => {\n \n   assert.equal(invite.teamId, \"team_legacy\");\n });\n+\n+test(\"teams with an undefined seat limit can continue inviting members\", () => {\n+  const store = createDemoStore();\n+  store.teams.push({ id: \"team_old\", name: \"Old Plan\" });\n+  store.members.push({ id: \"mem_4\", teamId: \"team_old\", email: \"old@example.com\" });\n+  store.invites.push({ id: \"inv_2\", teamId: \"team_old\", email: \"waiting@example.com\", status: \"pending\" });\n+\n+  const invite = inviteMember(store, \"team_old\", \"more@example.com\");\n+\n+  assert.equal(invite.teamId, \"team_old\");\n+  assert.equal(getSeatUsage(store, \"team_old\"), 3);\n+});\n+\n+test(\"seat availability accounts for active members and pending invites\", () => {\n+  const store = createDemoStore();\n+  store.invites = [];\n+\n+  assert.equal(getSeatUsage(store, \"team_starter\"), 2);\n+  assert.equal(hasSeatAvailable(store, \"team_starter\"), true);\n+\n+  inviteMember(store, \"team_starter\", \"new@example.com\");\n+\n+  assert.equal(getSeatUsage(store, \"team_starter\"), 3);\n+  assert.equal(hasSeatAvailable(store, \"team_starter\"), false);\n+});",
+  "prPacket": {
+    "title": "Enforce team billing seat limits on member invites",
+    "summary": "Adds seat usage accounting from the actual implementation diff, blocks invite creation at capacity, and preserves unlimited legacy teams.",
+    "checklist": [
+      "Seat usage counts active members and pending invites.",
+      "At-limit teams receive a typed, actionable seat-limit error.",
+      "Null or undefined seat limits preserve unlimited legacy teams.",
+      "Seat availability is exposed for admin-facing copy and checks.",
+      "Verification passed with the generated test suite."
+    ]
+  },
+  "risks": [
+    {
+      "title": "Billing source of truth",
+      "body": "This demo reads seat limits from the local team record. Production should confirm payment-provider sync timing."
+    },
+    {
+      "title": "Pending invite lifecycle",
+      "body": "Seat usage includes pending invites. Production should expire stale invites or expose cancellation clearly."
+    }
+  ]
+}
