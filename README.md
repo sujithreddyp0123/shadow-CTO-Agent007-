@@ -31,6 +31,21 @@ Small teams are already using AI coding tools, but they still need the missing C
 
 Shadow CTO is built around that trust gap. It connects product intent to a trustworthy engineering outcome: what changed, why it changed, how it was verified, and what risk remains.
 
+## How Codex and GPT-5.6 were used
+
+Shadow CTO uses Codex as the implementation agent and GPT-5.6 as the reasoning and product layer around the engineering workflow.
+
+Codex CLI is used to make the actual repo change. The runner writes a task file, invokes Codex against the copied demo repo, lets Codex edit the code in place, then captures the resulting git diff, changed files, and test output. The strict demo path requires Codex to be available, so the recorded run cannot silently fall back to a scripted implementation.
+
+GPT-5.6 was used to design and refine the orchestration around Codex: the product framing, the multi-stage engineering workflow, the evidence model, the README, the demo narrative, the risk-reporting language, and the reviewer-ready PR packet structure. In the product vision, GPT-5.6 acts as the planning/review intelligence layer while Codex acts as the implementation worker.
+
+Together, the flow is:
+
+1. A founder gives a plain-English business request.
+2. GPT-5.6-style reasoning turns that request into an engineering plan, evidence requirements, and review expectations.
+3. Codex CLI edits the repo.
+4. Shadow CTO runs verification, captures the diff and tests, identifies risks, and returns a PR-ready packet.
+
 ## Current vertical slice
 
 This first version includes both the dashboard and a live local runner for a controlled demo repo.
